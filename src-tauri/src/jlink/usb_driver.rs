@@ -1,9 +1,26 @@
 //! USB driver switching operations (WinUSB / SEGGER).
 
-use crate::jlink::{runner, scripts, types::{UsbDriverMode, UsbDriverResult}};
+use crate::jlink::{firmware, runner, scripts, types::{FirmwareUpdateResult, UsbDriverMode, UsbDriverResult}};
 
 pub fn switch(bin: &str, probe_index: usize, mode: UsbDriverMode) -> UsbDriverResult {
     log::info!("[jlink] Switching probe[{}] USB driver to {:?}", probe_index, mode);
+
+    // Requirement: update probe firmware before attempting USB driver switching.
+    match firmware::update(bin, probe_index) {
+        FirmwareUpdateResult::Failed { error } => {
+            return UsbDriverResult {
+                success: false,
+                error: Some(format!("Firmware update failed: {}", error)),
+                reboot_not_supported: false,
+            };
+        }
+        FirmwareUpdateResult::Updated { .. } => {
+            log::info!("[jlink] Probe[{}] firmware updated; continuing with USB driver switch", probe_index);
+        }
+        FirmwareUpdateResult::Current { .. } => {
+            log::info!("[jlink] Probe[{}] firmware already current; continuing with USB driver switch", probe_index);
+        }
+    }
 
     // ── Session 1: try WebUSBEnable / WebUSBDisable first ───────────────────────
     let primary_input = match mode {

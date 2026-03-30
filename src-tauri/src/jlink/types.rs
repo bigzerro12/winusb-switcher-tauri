@@ -25,6 +25,14 @@ pub struct InstallStatus {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "status", rename_all = "camelCase")]
+pub enum FirmwareUpdateResult {
+    Updated { firmware: String },
+    Current { firmware: String },
+    Failed { error: String },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UsbDriverResult {
     pub success: bool,

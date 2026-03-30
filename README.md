@@ -274,7 +274,7 @@ Step-by-step tagging and publishing are in **[Release and download](#release-and
 
 **Version bumps (next releases):** keep the same semver in `package.json`, `src-tauri/tauri.conf.json`, and `src-tauri/Cargo.toml` (no `v` prefix), refresh `src-tauri/Cargo.lock` after `Cargo.toml` edits, commit on `main`, then push a **new** tag (e.g. `v1.0.2` for app version `1.0.2`).
 
-Icons for bundling are under **`src-tauri/icons/`**. To regenerate from a 1024×1024 source PNG later: place it at `resources/icon-source.png` (un-ignore that path in `.gitignore` if needed), then from `src-tauri/` run `npx @tauri-apps/cli icon ../resources/icon-source.png`. The repo includes **`scripts/gen_icon_png.py`** as a fallback to generate a solid-color 1024×1024 PNG for that step.
+Icons for bundling are under **`src-tauri/icons/`**. To regenerate, use a **square** source image (e.g. 1024×1024 PNG) and run from `src-tauri/`: `npx @tauri-apps/cli icon ../path/to/icon.png`. If your source image is not square, pad/crop it first.
 
 ## Troubleshooting
 

@@ -20,6 +20,17 @@ pub fn show_emu_list() -> &'static str {
     "ShowEmuList\nExit\n"
 }
 
+// ─── Firmware ─────────────────────────────────────────────────────────────
+
+/// Trigger firmware update for a probe at the given index.
+/// `exec EnableAutoUpdateFW` tells JLink to check and flash if newer firmware is available.
+pub fn update_firmware(probe_index: usize) -> String {
+    format!(
+        "exec EnableAutoUpdateFW\nselectprobe\n{}\nexit\n",
+        probe_index
+    )
+}
+
 /// Fetch firmware dates for N probes by selecting each one by index.
 pub fn fetch_firmware_dates(count: usize) -> String {
     let mut s = String::from("exec DisableAutoUpdateFW\n");

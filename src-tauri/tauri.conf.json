@@ -15,7 +15,7 @@
       {
         "title": "WinUSB Switcher",
         "width": 770,
-        "height": 640,
+        "height": 530,
         "minWidth": 500,
         "minHeight": 400,
         "resizable": true,

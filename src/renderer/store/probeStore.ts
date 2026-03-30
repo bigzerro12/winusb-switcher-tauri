@@ -135,8 +135,8 @@ export const useProbeStore = create<ProbeState>((set, get) => ({
     set({
       usbDriverStatus: "switching",
       usbDriverMessage: mode === "winUsb"
-        ? "Switching the probe USB driver to WinUSB..."
-        : "Switching the probe USB driver to SEGGER...",
+        ? "Updating probe firmware and switching the USB driver to WinUSB..."
+        : "Updating probe firmware and switching the USB driver to SEGGER...",
       error: null,
     });
 
