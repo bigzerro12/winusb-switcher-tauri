@@ -44,7 +44,14 @@ pub async fn scan_for_installer() -> Result<ScanInstallerResult, AppError> {
     }
 }
 
-/// Start downloading J-Link via a hidden WebviewWindow.
+/// Start downloading J-Link.
+///
+/// Strategy: WebView and direct HTTP start in parallel.
+/// - WebView opens immediately (hidden, auto-accepts license).
+/// - HTTP streams the binary directly; if SEGGER returns HTML (license gate) or fails,
+///   the task exits silently — WebView continues uninterrupted.
+/// - Whichever path completes first emits `download://completed`; the other exits cleanly.
+///
 /// Returns immediately — progress/completion signaled via events.
 #[tauri::command]
 pub async fn download_jlink(app: AppHandle) -> Result<serde_json::Value, AppError> {
@@ -52,8 +59,8 @@ pub async fn download_jlink(app: AppHandle) -> Result<serde_json::Value, AppErro
     DOWNLOAD_COMPLETE.store(false, Ordering::SeqCst);
     let gen = DOWNLOAD_GENERATION.fetch_add(1, Ordering::SeqCst) + 1;
 
-    // Brief delay to let pending Finished events from previous cancelled downloads drain
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+    // Short drain delay: lets stale Finished events from a previous cancelled download settle.
+    tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
 
     let cfg = DownloadConfig::for_platform();
 
@@ -62,16 +69,16 @@ pub async fn download_jlink(app: AppHandle) -> Result<serde_json::Value, AppErro
         std::fs::create_dir_all(parent).map_err(|e| AppError::Io(e.to_string()))?;
     }
 
-    // Remove leftover .tmp from previous attempt
+    // Remove leftovers from any previous attempt
     let _ = std::fs::remove_file(&cfg.save_tmp);
+    let http_tmp = cfg.save_tmp.with_extension("http.tmp");
+    let _ = std::fs::remove_file(&http_tmp);
 
     let save_str = cfg.save_final.to_string_lossy().to_string();
 
-    // Progress events come from webview.rs simulation thread (Linux/macOS) or poll task (Windows)
-
-    // Start WebView download (hidden browser, auto-accepts SEGGER license)
+    // ── Path 1: WebView (always starts immediately) ────────────────────────────
     // Windows: saves to save_tmp (.tmp), poll task renames to save_final
-    // Linux/macOS: extracts cookies, re-downloads with reqwest to save_final
+    // Linux/macOS: WebKitGTK download → Finished event provides path
     download::webview::start_download(
         &app,
         cfg.save_tmp.clone(),
@@ -81,14 +88,51 @@ pub async fn download_jlink(app: AppHandle) -> Result<serde_json::Value, AppErro
         &DOWNLOAD_COMPLETE,
     )?;
 
-    // Poll task only needed on Windows (.tmp rename trick)
-    // Linux/macOS: Finished event provides actual path directly
+    // ── Path 2: Direct HTTP (parallel fast path) ───────────────────────────────
+    // Uses a separate .http.tmp file so it never collides with the WebView .tmp.
+    // If HTTP wins: sets DOWNLOAD_COMPLETE via compare_exchange and emits completed.
+    // If HTTP fails (SEGGER license gate, network error, etc.): logs at INFO and exits.
+    // WebView continues regardless.
+    {
+        let app_http = app.clone();
+        let http_tmp_path = http_tmp.clone();
+        let final_path = cfg.save_final.clone();
+        let url = cfg.url;
+        tokio::spawn(async move {
+            match download::http::download_to_path(
+                &app_http, url, &http_tmp_path, &final_path, &DOWNLOAD_CANCELLED,
+            ).await {
+                Ok(()) => {
+                    // HTTP won — mark complete and notify frontend (only if WebView hasn't already).
+                    if DOWNLOAD_COMPLETE.compare_exchange(
+                        false, true, Ordering::SeqCst, Ordering::SeqCst,
+                    ).is_ok() {
+                        log::info!("[download] Direct HTTP fast path completed first");
+                        let _ = app_http.emit(
+                            "download://completed",
+                            final_path.to_string_lossy().to_string(),
+                        );
+                    }
+                    // http_tmp was renamed to final on success; nothing to clean up.
+                }
+                Err(e) => {
+                    // Expected for SEGGER (license gate). WebView is already running.
+                    log::info!("[download] HTTP fast path unavailable ({}) — WebView will handle it", e);
+                    let _ = tokio::fs::remove_file(&http_tmp_path).await;
+                }
+            }
+        });
+    }
+
+    // ── Windows poll task ──────────────────────────────────────────────────────
+    // Watches WebView's .tmp file; exits early if HTTP already marked DOWNLOAD_COMPLETE.
     #[cfg(target_os = "windows")]
     download::poll::spawn(
         app,
         cfg.save_tmp,
         cfg.save_final,
         &DOWNLOAD_CANCELLED,
+        &DOWNLOAD_COMPLETE,
         &DOWNLOAD_GENERATION,
         gen,
         64_602_096,
@@ -99,7 +143,7 @@ pub async fn download_jlink(app: AppHandle) -> Result<serde_json::Value, AppErro
     Ok(serde_json::json!({
         "success": true,
         "path": save_str,
-        "mode": "webview-intercept"
+        "mode": "http-or-webview"
     }))
 }
 
@@ -127,15 +171,13 @@ pub async fn cancel_download(app: AppHandle) -> Result<(), AppError> {
 
     let cfg = DownloadConfig::for_platform();
 
-    // Windows: delete .tmp file
-    if cfg.save_tmp.exists() {
-        let _ = std::fs::remove_file(&cfg.save_tmp);
-        log::info!("[download] Deleted .tmp file");
-    }
-    // Also delete partially written final file if WebView wrote there directly.
-    if cfg.save_final.exists() {
-        let _ = std::fs::remove_file(&cfg.save_final);
-        log::info!("[download] Deleted final installer file");
+    // Delete WebView .tmp, HTTP .http.tmp, and any partially-written final file
+    let http_tmp = cfg.save_tmp.with_extension("http.tmp");
+    for p in [&cfg.save_tmp, &http_tmp, &cfg.save_final] {
+        if p.exists() {
+            let _ = std::fs::remove_file(p);
+            log::info!("[download] Deleted on cancel: {}", p.display());
+        }
     }
 
     // Linux/macOS: delete only JLink file created AFTER this download started
@@ -147,7 +189,6 @@ pub async fn cancel_download(app: AppHandle) -> Result<(), AppError> {
         });
         let start_secs = crate::download::webview::get_download_start_secs();
 
-        // Find newest JLink installer modified AFTER download started
         let mut newest: Option<(std::path::PathBuf, std::time::SystemTime)> = None;
         if let Ok(entries) = std::fs::read_dir(&download_dir) {
             for entry in entries.flatten() {
@@ -164,7 +205,6 @@ pub async fn cancel_download(app: AppHandle) -> Result<(), AppError> {
                                 .unwrap_or_default()
                                 .as_secs();
                             if mtime_secs >= start_secs {
-                                // Delete ALL .wkdownload files immediately (always incomplete)
                                 if name.ends_with(".wkdownload") {
                                     let _ = std::fs::remove_file(&path);
                                     log::info!("[download] Deleted partial on cancel: {:?}", path);
@@ -216,7 +256,6 @@ pub async fn install_jlink(installer_path: String) -> Result<InstallResult, AppE
 pub async fn cancel_install(_keep_installer: bool) -> Result<(), AppError> {
     if INSTALL_CANCELLED.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
         log::info!("[install] cancel_install called — installer file kept");
-        // Note: we never delete the installer file — user may want to retry
     }
     Ok(())
 }

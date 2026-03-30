@@ -16,13 +16,15 @@ use crate::download::types::DownloadProgress;
 /// - Emits `download://progress` events as file grows
 /// - Renames `.tmp` → `.exe` when stable
 /// - Emits `download://completed` with final path
-/// - Exits cleanly on cancel or generation mismatch (stale task)
+/// - Exits cleanly on cancel, generation mismatch, or if the HTTP fast path
+///   already marked the download complete
 #[allow(dead_code)]
 pub fn spawn(
     app: AppHandle,
     save_tmp: PathBuf,
     save_final: PathBuf,
     cancelled: &'static AtomicBool,
+    download_complete: &'static AtomicBool,
     generation: &'static AtomicU32,
     my_generation: u32,
     expected_size: u64,
@@ -51,6 +53,12 @@ pub fn spawn(
                 return;
             }
 
+            // Exit if the HTTP fast path already completed the download
+            if download_complete.load(Ordering::SeqCst) {
+                log::info!("[poll] HTTP fast path already completed — exiting");
+                return;
+            }
+
             if start.elapsed().as_secs() > 300 {
                 log::warn!("[poll] Timeout after 300s — exiting");
                 return;
@@ -75,12 +83,20 @@ pub fn spawn(
                 }).ok();
             }
 
-            // Detect completion: size > 10MB and stable for 3 checks
+            // Detect completion: size > 10MB and stable for 3 consecutive checks
             if size > 10_000_000 {
                 if size == last_size {
                     stable_count += 1;
                     if stable_count >= 3 {
                         log::info!("[poll] Download complete: {} bytes", size);
+
+                        // Use compare_exchange so we don't double-complete if HTTP also finished
+                        if download_complete.compare_exchange(
+                            false, true, Ordering::SeqCst, Ordering::SeqCst,
+                        ).is_err() {
+                            log::info!("[poll] HTTP fast path beat us — discarding WebView result");
+                            return;
+                        }
 
                         // Rename .tmp → .exe (prevents WebView2 cleanup)
                         let final_path = match std::fs::rename(&save_tmp, &save_final) {

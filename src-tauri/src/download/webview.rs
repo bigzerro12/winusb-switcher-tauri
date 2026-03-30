@@ -179,13 +179,27 @@ pub fn start_download(
                 if success {
                     #[cfg(target_os = "windows")]
                     {
-                        download_complete.store(true, Ordering::SeqCst);
+                        // On Windows the poll task owns the completion event.
+                        // Just note that WebView finished so the poll task can proceed.
+                        // (compare_exchange so we don't clobber if HTTP already won)
+                        let _ = download_complete.compare_exchange(
+                            false, true, Ordering::SeqCst, Ordering::SeqCst,
+                        );
                         close_downloader_window(&app_clone, my_gen_capture);
                     }
 
                     #[cfg(not(target_os = "windows"))]
                     {
-                        download_complete.store(true, Ordering::SeqCst);
+                        // Use compare_exchange: if HTTP fast path already completed,
+                        // discard this WebView result silently to avoid a double-complete.
+                        let won = download_complete.compare_exchange(
+                            false, true, Ordering::SeqCst, Ordering::SeqCst,
+                        ).is_ok();
+                        if !won {
+                            log::info!("[download] WebView Finished — HTTP fast path already won, discarding");
+                            close_downloader_window(&app_clone, my_gen_capture);
+                            return false;
+                        }
 
                         // Use the file WebView already downloaded
                         let final_path = if let Some(ref actual) = path {
