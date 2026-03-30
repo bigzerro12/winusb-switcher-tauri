@@ -1,0 +1,516 @@
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+  line-height: 1.5;
+  padding: 12px;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* React mount point must propagate height */
+#root {
+  height: 100%;
+}
+
+.container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Main App Card */
+.app-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto; /* scroll internally when content exceeds window */
+}
+
+/* Custom scrollbar styling */
+.app-card::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-card::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.app-card::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.app-card::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Header */
+.app-header {
+  text-align: center;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.app-header h1 {
+  color: #2c3e50;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.app-description {
+  color: #666;
+  font-size: 13px;
+  margin-bottom: 0;
+  text-align: center;
+}
+
+.platform-badge {
+  background-color: #e8f4fd;
+  color: #0066cc;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+/* Section Styles */
+.software-section,
+.probes-section,
+.driver-section {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.software-section:last-child,
+.probes-section:last-child,
+.driver-section:last-child {
+  border-bottom: none;
+}
+
+/* Section Headers */
+.software-section h2,
+.probes-section h2,
+.driver-section h2 {
+  color: #2c3e50;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+/* Content containers with shadow */
+.software-info,
+.probes-info,
+.driver-info {
+  background: #fafafa;
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin-top: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Software Info */
+.software-info {
+  display: flex;
+  align-items: center;
+}
+
+.software-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.software-version {
+  font-size: 13px;
+  color: #333;
+  font-weight: 500;
+}
+
+.software-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+  display: inline-block;
+}
+
+.status-indicator.detected {
+  background-color: #28a745;
+}
+
+.status-indicator.error {
+  background-color: #dc3545;
+}
+
+.status-indicator.checking {
+  background-color: #ffc107;
+}
+
+.status-text {
+  font-size: 13px;
+  color: #666;
+}
+
+/* Probes Info */
+.probes-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.probes-status {
+  display: flex;
+  align-items: center;
+}
+
+.probes-selection {
+  font-size: 13px;
+  color: #666;
+  font-style: italic;
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Buttons */
+.btn {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.btn-outline-primary {
+  background-color: transparent;
+  color: #007bff;
+  border: 2px solid #007bff;
+  padding: 3px 10px; /* Slightly smaller to account for border */
+}
+
+.btn-outline-primary:hover:not(:disabled) {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #545b62;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
+/* Table */
+.table-container {
+  margin-bottom: 16px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+.probe-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.probe-table th,
+.probe-table td {
+  padding: 7px 10px;
+  text-align: left;
+  border-bottom: 1px solid #e8e8e8;
+  font-size: 13px;
+}
+
+.probe-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #2c3e50;
+  border-bottom: 2px solid #e8e8e8;
+}
+
+.probe-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.probe-table tbody tr.selected {
+  background-color: #e3f2fd;
+}
+
+.probe-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Connection Status */
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.connection-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #28a745;
+}
+
+/* Driver Badges */
+.driver-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.driver-badge.driver-segger {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.driver-badge.driver-winusb {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.driver-badge.driver-unknown {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+/* Driver Section */
+.driver-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.driver-description {
+  color: #666;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.driver-note {
+  font-size: 13px;
+  color: #999;
+  font-style: italic;
+}
+
+.driver-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+.driver-actions .btn {
+  width: 100%;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Error Message */
+.error-message {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+/* Loading State */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Not Installed Message */
+.not-installed-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+.message-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+.message-card h2 {
+  color: #dc3545;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.message-card p {
+  color: #666;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.message-card p:last-of-type {
+  margin-bottom: 24px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+  
+  .app-card {
+    padding: 16px;
+  }
+  
+  .probes-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .probes-selection {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .probe-table {
+    font-size: 13px;
+  }
+  
+  .probe-table th,
+  .probe-table td {
+    padding: 8px 12px;
+  }
+
+  .driver-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Custom tooltips */
+.btn[title] {
+  position: relative;
+}
+
+.btn[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #343a40;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+  animation: fadeIn 0.3s ease-in-out forwards;
+  margin-bottom: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn[title]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid #343a40;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+  animation: fadeIn 0.3s ease-in-out forwards;
+  margin-bottom: 0px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(2px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}

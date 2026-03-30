@@ -1,0 +1,40 @@
+# ── Dependencies ──────────────────────────────────────────────────────────────
+node_modules/
+
+# ── Build outputs ─────────────────────────────────────────────────────────────
+out/
+dist/
+
+# ── Electron-builder cache ────────────────────────────────────────────────────
+.cache/
+buildResources/
+
+# ── Environment ───────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Editor ────────────────────────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+
+# ── TypeScript ────────────────────────────────────────────────────────────────
+*.tsbuildinfo
+
+# ── Test / coverage ───────────────────────────────────────────────────────────
+coverage/
+test_jlink.exe
+
+# ── Icon source (keep generated icons, ignore raw source) ─────────────────────
+resources/icon-source.png

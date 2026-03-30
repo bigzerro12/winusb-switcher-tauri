@@ -1,0 +1,33 @@
+[package]
+name = "winusb-switcher"
+version = "1.0.0"
+description = "WinUSB Switcher — J-Link USB driver helper"
+authors = ["WinUSB Switcher"]
+edition = "2021"
+
+[lib]
+name = "winusb_switcher_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+tauri-plugin-log = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+log = "0.4"
+reqwest = { version = "0.12", features = ["stream"] }
+futures-util = "0.3"
+dirs = "5"
+which = "6"
+ctrlc = "3"
+thiserror = "1"
+
+
+[profile.release]
+opt-level = "s"   # optimize for size
+strip = true

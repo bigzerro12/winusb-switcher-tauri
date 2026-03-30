@@ -1,0 +1,9 @@
+{
+  "identifier": "default",
+  "description": "Default permissions for WinUSB Switcher",
+  "windows": ["main", "jlink-downloader"],
+  "permissions": [
+    "core:default",
+    "shell:allow-open"
+  ]
+}

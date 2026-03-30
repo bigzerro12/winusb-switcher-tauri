@@ -1,0 +1,11 @@
+//! macOS-specific search directories for J-Link.
+
+use std::path::PathBuf;
+
+pub fn search_dirs() -> Vec<PathBuf> {
+    vec![
+        PathBuf::from("/Applications/SEGGER/JLink"),
+        PathBuf::from("/usr/local/bin"),
+        PathBuf::from("/opt/homebrew/bin"),
+    ]
+}
