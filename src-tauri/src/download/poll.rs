@@ -69,7 +69,9 @@ pub fn spawn(
             // Emit progress
             if size > 0 {
                 let total = expected_size.max(size);
-                let percent = ((size * 100 / total).min(99) as u32).max(1);
+                // Keep progress at 0% until we can meaningfully show >= 1%.
+                // This avoids UI appearing "stuck" at 1% while WebView is buffering / not flushing.
+                let percent = (size * 100 / total).min(99) as u32;
                 app.emit("download://progress", DownloadProgress {
                     percent,
                     transferred: size,

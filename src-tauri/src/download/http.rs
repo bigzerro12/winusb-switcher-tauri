@@ -82,10 +82,9 @@ pub async fn download_to_path(
         transferred = transferred.saturating_add(chunk.len() as u64);
 
         let percent = if total > 0 {
-            ((transferred.saturating_mul(100) / total).min(99) as u32).max(1)
+            (transferred.saturating_mul(100) / total).min(99) as u32
         } else {
-            // Unknown total; keep UI "alive"
-            1
+            0
         };
 
         let _ = app.emit(

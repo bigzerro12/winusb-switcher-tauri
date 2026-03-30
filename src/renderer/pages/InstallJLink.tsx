@@ -146,8 +146,8 @@ export default function InstallJLink() {
         const safePercent = Math.max(0, Math.min(100, percent));
         setDownloadProgress(safePercent);
         if (percent === 0) {
-          // Reset — retry in progress
-          setProgressLabel('');
+          // Pre-download / buffering phase: keep an indeterminate/pulsing bar.
+          setProgressLabel('Preparing download…');
         } else if (total > 0) {
           const mb = (transferred / 1024 / 1024).toFixed(1);
           const totalMb = Math.round(total / 1024 / 1024);
