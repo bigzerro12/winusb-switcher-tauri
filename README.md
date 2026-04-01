@@ -66,40 +66,109 @@ If a tag push did nothing: confirm **Actions** is enabled, permissions allow **c
 
 ## Development prerequisites
 
-This project is a **Tauri 2** app. You need a working **Node.js** toolchain for the UI and a working **Rust** toolchain for the native shell. Follow the official checklist first, then install JS dependencies.
+This project is a **Tauri 2** app. You need:
 
-### Everyone (contributors building from source)
+- **Node.js** (recommended via **NVM**) for the React/Vite frontend
+- **Yarn classic (v1)** for JS dependencies (`yarn.lock`)
+- **Rust/Cargo** (via **rustup**) for the Tauri backend
+- OS-level dependencies required by **Tauri/WebView**
 
-| Requirement | Notes |
-|-------------|--------|
-| **Node.js** | **LTS**, v20 or newer (matches `package.json` / CI expectations). [nodejs.org](https://nodejs.org/) |
-| **Yarn** | **Classic Yarn v1** (`yarn --version` ≈ 1.22.x). Install: `npm install -g yarn` if needed. The repo uses `yarn.lock`. |
-| **Rust** | **Stable** channel via [rustup](https://rustup.rs/). After install: `rustc --version` and `cargo --version` should work in the same terminal you use for development. |
-| **Tauri CLI** | **`@tauri-apps/cli`** (devDependency). Scripts use **`yarn tauri dev`** / **`yarn tauri build`**, which run the local CLI after `yarn install`. Optionally install globally: `cargo install tauri-cli` and use `cargo tauri …` instead. |
-| **SEGGER J-Link** | Not required to *compile* the app, but required to *use* probe features. The install screen can download J-Link on supported platforms. |
+The authoritative OS dependency list is Tauri’s docs:
 
-**Verify your environment** (from any directory):
+- [Tauri prerequisites](https://tauri.app/start/prerequisites/)
+
+### Install toolchains (recommended)
+
+#### Windows
+
+1. **NVM for Windows**: install from the official `nvm-windows` releases.
+2. Install Node 20 and enable it:
 
 ```bash
-node --version    # expect v20.x or newer
-yarn --version    # expect 1.22.x
+nvm install 20
+nvm use 20
+node --version
+```
+
+3. Install **Yarn classic**:
+
+```bash
+npm install -g yarn
+yarn --version   # expect 1.22.x
+```
+
+4. Install **Rust** (rustup) and verify:
+
+```bash
 rustc --version
 cargo --version
 ```
 
-### Platform-specific (Tauri / WebView)
+5. Install Windows build prerequisites for Tauri (MSVC build tools) per the Tauri docs.
 
-Install the system dependencies Tauri expects on your OS. The authoritative list is here:
+#### macOS
 
-**[https://tauri.app/start/prerequisites/](https://tauri.app/start/prerequisites/)**
+1. Install Xcode Command Line Tools:
 
-Summary (always double-check the doc above for your exact OS version):
+```bash
+xcode-select --install
+```
 
-- **Windows** — **Microsoft C++ Build Tools** (MSVC) for Rust `*-pc-windows-msvc` targets; **WebView2** (Evergreen Runtime is usually already present on recent Windows 10/11).
-- **macOS** — **Xcode Command Line Tools** (`xcode-select --install`).
-- **Linux** — WebKitGTK and related packages (e.g. on Debian/Ubuntu families: `libwebkit2gtk`, `libgtk-3`, build essentials). Use Tauri’s Linux section for the current package list.
+2. Install **NVM**, then Node 20:
 
-After OS deps are satisfied, you should be able to compile the crate in `src-tauri` without linker errors (e.g. `cd src-tauri && cargo check`).
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+source ~/.zshrc  # or ~/.bashrc
+nvm install 20
+nvm use 20
+node --version
+```
+
+3. Install **Yarn classic**:
+
+```bash
+npm install -g yarn
+yarn --version
+```
+
+4. Install **Rust** (rustup) and verify:
+
+```bash
+rustc --version
+cargo --version
+```
+
+#### Linux (Ubuntu/Debian example)
+
+1. Install build prerequisites for Tauri/WebKitGTK per the Tauri docs.
+2. Install **NVM**, then Node 20:
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+source ~/.bashrc
+nvm install 20
+nvm use 20
+node --version
+```
+
+3. Install **Yarn classic**:
+
+```bash
+npm install -g yarn
+yarn --version
+```
+
+4. Install **Rust** (rustup) and verify:
+
+```bash
+rustc --version
+cargo --version
+```
+
+### Notes
+
+- **Tauri CLI**: This repo uses the local `@tauri-apps/cli` (devDependency). Use `yarn tauri:dev` / `yarn tauri:build` after `yarn install`. (Optional: `cargo install tauri-cli` and run `cargo tauri ...`.)
+- **SEGGER J-Link**: Not required to *compile*, but required to *use* probe features. The app can download/install J-Link from the UI on supported platforms.
 
 ---
 
